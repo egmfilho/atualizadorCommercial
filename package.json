@@ -1,0 +1,24 @@
+{
+  "name": "atualizador",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "electron ./app.js",
+    "build-mac": "node ./builder.js darwin",
+    "build-win32": "node ./builder.js win32"
+  },
+  "author": "egmfilho",
+  "license": "ISC",
+  "devDependencies": {
+    "devtron": "^1.4.0",
+    "electron": "^1.7.5",
+    "electron-packager": "^8.7.2"
+  },
+  "dependencies": {
+    "angular": "^1.6.6",
+    "angular-route": "^1.6.6",
+    "asar": "^0.13.0",
+    "electron-debug": "^1.4.0"
+  }
+}

@@ -1,0 +1,6 @@
+{
+	"current-ver": "2.0.0 rc5",
+	"url": "https://download.sublimetext.com/Sublime%20Text%20Build%203126%20x64%20Setup.exe",
+	"filename": "update.exe",
+	"manager": "./manager.bat"
+}

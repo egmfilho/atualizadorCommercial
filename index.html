@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Atualizador</title>
+		<style type="text/css">
+			* {
+				font-family: arial;
+				color: #4b4b4d;
+			}
+
+			button {
+				font-size: 16px;
+				padding: 12px 24px;
+				background-color: #4b4b4d;
+				border: none;
+				border-radius: 3px;
+				color: white;
+			}
+
+			button:hover {
+				cursor: pointer;
+			}
+
+			button:active {
+				background-color: #303030;
+				outline: none;
+			}
+
+			button:focus {
+				outline: none;
+			}
+
+			.background {
+				margin: 0;
+				background-image: url('./data/images/background.jpg');
+				background-repeat: no-repeat;
+				background-position: center;
+				background-size: cover;
+			}
+
+			.container {
+				display: table-cell;
+				width: 640px;
+				height: 480px;
+				box-sizing: border-box;
+				vertical-align: middle;
+				padding: 32px;
+			}
+
+			.card {
+				width: 100%;
+				background-color: white;
+				box-shadow: 0 0 8px rgba(0, 0, 0, 0.7);
+				padding: 32px;
+				box-sizing: border-box;
+			}
+
+			.title {
+				
+			}
+
+			.title h1 {
+				margin-top: 0;
+				font-size: 28px;
+				font-weight: 400;
+			}
+
+			.title h2 {
+				font-size: 22px;
+				font-weight: 400;
+			}
+
+			#progress-bar-container {
+				width: 100%;
+				height: 32px;
+				background-color: grey;
+				position: relative;
+			}
+
+			#progress-bar {
+				width: 0;
+				height: 32px;
+				background-color: #f98444;
+			}
+
+			.progress {
+				font-size: 20px;
+				width: 100%;
+				margin-bottom: 16px;
+			}
+
+			.progress div {
+				width: 49%;
+				box-sizing: border-box;
+				display: inline-block;
+			}
+
+			.progress div:last-child {
+				text-align: right;
+			}
+
+			.info {
+				margin-top: 16px;
+				font-size: 14px;
+			}
+
+			.control {
+				margin: -8px;
+				margin-top: 32px;
+				display: block;
+			}
+
+			.control button {
+				margin: 0 8px;
+				min-width: 120px;
+				float: right;
+			}
+
+			.clearfix:after {
+				visibility: hidden;
+				display: block;
+				font-size: 0;
+				content: " ";
+				clear: both;
+				height: 0;
+			}
+		</style>
+	</head>
+	<body class="background" ng-app='atualizador'>
+
+		<div class="container">
+			<div class="card" ng-view></div>
+		</div>
+
+		<script type="text/javascript" src="./node_modules/angular/angular.min.js"></script>
+		<script type="text/javascript" src="./node_modules/angular-route/angular-route.min.js"></script>
+		<script type="text/javascript">
+
+			angular.module('atualizador', ['ngRoute'])
+				.config(['$routeProvider', function($routeProvider) {
+					$routeProvider
+						.when('/', {
+							templateUrl: 'home.html',
+							controller: 'HomeCtrl',
+							controllerAs: 'home'
+						})
+						.when('/download', {
+							templateUrl: 'download.html',
+							controller: 'DownloadCtrl',
+							controllerAs: 'download'
+						})
+						.when('/install', {
+							templateUrl: 'install.html',
+							controller: 'InstallCtrl',
+							controllerAs: 'install'
+						})
+						.when('/complete', {
+							templateUrl: 'complete.html',
+							controller: 'CompleteCtrl',
+							controllerAs: 'complete'
+						})
+						.when('/error', {
+							templateUrl: 'error.html',
+							controller: 'ErrorCtrl',
+							controllerAs: 'error'
+						})
+						.otherwise({
+							redirectTo: '/'
+						})
+				}])
+				.run(['$rootScope', '$location', function($rootScope, $location) {
+					$rootScope.version = '0.1';
+					$rootScope.error = '';
+
+					var _ipcRenderer = require('electron').ipcRenderer;
+
+					_ipcRenderer.on('error', function(event, arg) {
+						$rootScope.error = arg;
+						$location.path('/error');
+					});
+
+					_ipcRenderer.on('aborted', function(event, arg) {
+						$location.path('/');
+					});
+
+					_ipcRenderer.on('downloaded', function(event, arg) {
+						$location.path('/install');
+					});
+
+					_ipcRenderer.on('complete', function(event, arg) {
+						$location.path('/complete');
+					});
+				}])
+				.controller('HomeCtrl', ['$location', function($location) {
+					this.download = function() {
+						$location.path('/download');
+					};
+
+					this.quit = function() {
+						_ipcRenderer.send('quit');
+					};
+				}])
+				.controller('DownloadCtrl', ['$location', '$timeout', function($location, $timeout) {
+					var self = this,
+						_ipcRenderer = require('electron').ipcRenderer;
+
+					self.progress = 0;
+					self.total = 0;
+					self.percent = 0;
+					self.progressElem = document.getElementById('progress-bar');
+
+					self.setProgressBarValue = function(value) {
+						self.progressElem.style.width = value + '%';
+					};
+
+					$timeout(function() {
+						_ipcRenderer.send('begin-download');
+					}, 1000);
+
+					_ipcRenderer.on('download', function(event, arg) {
+						self.percent = 0;
+						self.setProgressBarValue(self.percent);
+					});
+
+					_ipcRenderer.on('download-progress', function(event, arg) {
+						$timeout(function() {
+							self.progress = (arg.progress / 1000000.0).toFixed(2);
+							self.total = (arg.total / 1000000.0).toFixed(2);
+							self.percent = (self.progress * 100) / self.total;
+							self.setProgressBarValue(parseInt(self.percent));
+						});
+					});
+
+					this.cancel = function() {
+						_ipcRenderer.send('abort');
+					};
+				}])
+				.controller('InstallCtrl', ['$location', function($location) {
+					var _ipcRenderer = require('electron').ipcRenderer;
+
+					this.quit = function() {
+						_ipcRenderer.send('quit');
+					};
+				}])
+				.controller('CompleteCtrl', [function() {
+					var _ipcRenderer = require('electron').ipcRenderer;
+
+					this.killApp = function() {
+						_ipcRenderer.send('kill');
+					};
+				}])
+				.controller('ErrorCtrl', [function() {
+					var _ipcRenderer = require('electron').ipcRenderer;
+
+					this.killApp = function() {
+						_ipcRenderer.send('kill');
+					};
+				}]);
+
+		</script>
+
+		<script type="text/ng-template" id="home.html">
+
+			<div class="title">
+				<h1>Commercial - Gestor de vendas</h1>
+				<h2>Atualizador ver. {{version}}</h2>
+			</div>
+
+			<div class="control">
+				<div class="clearfix">
+					<button ng-click="home.quit()">Fechar</button>
+					<button ng-click="home.download()">Atualizar</button>
+				</div>
+			</div>
+
+		</script>
+
+		<script type="text/ng-template" id="download.html">
+
+			<div class="progress">
+				<div>
+					Download
+				</div>
+				<div>
+					{{download.percent | number:'2'}}%
+				</div>
+			</div>
+			<div id="progress-bar-container">
+				<div id="progress-bar"></div>
+			</div>
+			<div class="info">
+				Baixados {{download.progress}}Mb de {{download.total}}Mb
+			</div>
+			
+			<div class="control">
+				<div class="clearfix">
+					<button ng-click="download.cancel()">Cancelar</button>
+				</div>				
+			</div>
+
+		</script>
+
+		<script type="text/ng-template" id="install.html">
+
+			<div class="title">
+				<h2>Instalando...</h2>
+			</div>
+
+		</script>
+
+		<script type="text/ng-template" id="complete.html">
+
+			<div class="title">
+				<h2>Atualização completa!</h2>
+			</div>
+
+			<div class="control">
+				<div class="clearfix">
+					<button ng-click="complete.killApp()">Fechar</button>
+				</div>
+			</div>
+
+		</script>
+
+		<script type="text/ng-template" id="error.html">
+
+			<div class="title">
+				<h2>Falha na atualização</h2>
+				<p>{{error}}</p>
+			</div>
+
+			<div class="control">
+				<div class="clearfix">
+					<button ng-click="update.killApp()">Fechar</button>
+				</div>				
+			</div>
+
+		</script>
+
+	</body>
+</html>
