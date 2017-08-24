@@ -2,7 +2,7 @@
 * @Author: egmfilho
 * @Date:   2017-06-09 14:15:02
 * @Last Modified by:   egmfilho
-* @Last Modified time: 2017-08-23 18:00:44
+* @Last Modified time: 2017-08-24 13:27:54
 */
 
 const packager = require('electron-packager');
@@ -32,6 +32,7 @@ let options = {
 		'releases/',
 		'.gitignore',
 		'builder.js',
+		'banner.bmp',
 		'atualizador.icns',
 		'atualizador.ico',
 		'atualizador.png',

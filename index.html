@@ -168,27 +168,35 @@
 							redirectTo: '/'
 						})
 				}])
-				.run(['$rootScope', '$location', function($rootScope, $location) {
-					$rootScope.version = '0.1';
+				.run(['$rootScope', '$location', '$timeout', function($rootScope, $location, $timeout) {
+					$rootScope.version = '0.2';
 					$rootScope.error = '';
 
 					var _ipcRenderer = require('electron').ipcRenderer;
 
 					_ipcRenderer.on('error', function(event, arg) {
 						$rootScope.error = arg;
-						$location.path('/error');
+						$timeout(function() {
+							$location.path('/error');
+						});
 					});
 
 					_ipcRenderer.on('aborted', function(event, arg) {
-						$location.path('/');
+						$timeout(function() {
+							$location.path('/');
+						});
 					});
 
 					_ipcRenderer.on('downloaded', function(event, arg) {
-						$location.path('/install');
+						$timeout(function() {
+							$location.path('/install');
+						});
 					});
 
 					_ipcRenderer.on('complete', function(event, arg) {
-						$location.path('/complete');
+						$timeout(function() {
+							$location.path('/complete');
+						});
 					});
 				}])
 				.controller('HomeCtrl', ['$location', function($location) {
@@ -235,25 +243,11 @@
 						_ipcRenderer.send('abort');
 					};
 				}])
-				.controller('InstallCtrl', ['$location', function($location) {
+				.controller('Ctrl', [function() {
 					var _ipcRenderer = require('electron').ipcRenderer;
 
 					this.quit = function() {
 						_ipcRenderer.send('quit');
-					};
-				}])
-				.controller('CompleteCtrl', [function() {
-					var _ipcRenderer = require('electron').ipcRenderer;
-
-					this.killApp = function() {
-						_ipcRenderer.send('kill');
-					};
-				}])
-				.controller('ErrorCtrl', [function() {
-					var _ipcRenderer = require('electron').ipcRenderer;
-
-					this.killApp = function() {
-						_ipcRenderer.send('kill');
 					};
 				}]);
 
@@ -316,7 +310,7 @@
 
 			<div class="control">
 				<div class="clearfix">
-					<button ng-click="complete.killApp()">Fechar</button>
+					<button ng-click="ctrl.quit()">Fechar</button>
 				</div>
 			</div>
 
@@ -326,12 +320,12 @@
 
 			<div class="title">
 				<h2>Falha na atualização</h2>
-				<p>{{error}}</p>
+				<p>Não foi possível completar a instalação, tente novamente mais tarde.</p>
 			</div>
 
 			<div class="control">
 				<div class="clearfix">
-					<button ng-click="update.killApp()">Fechar</button>
+					<button ng-click="ctrl.quit()">Fechar</button>
 				</div>				
 			</div>
 

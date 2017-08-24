@@ -12,7 +12,7 @@ var dlStatus = {
 
 var req;
 
-function download(rawUrl, file, progress, callback) {
+function download(rawUrl, port, file, progress, callback, mainWindow) {
 	var parsedUrl = url.parse(rawUrl);
 	var hostname  = parsedUrl.hostname;
 	var pathname  = parsedUrl.pathname;
@@ -24,13 +24,15 @@ function download(rawUrl, file, progress, callback) {
 			method: 'GET',
 			host: hostname,
 			path: pathname,
-			port: 80
+			port: port
 		};
 
 		var buffer = '';
 
 		req = http.request(options, function(res) {
-			if (res.statusCode !== 200) return;
+			if (res.statusCode !== 200) {
+				return mainWindow.webContents.send('error', `status: ${res.statusCode}`);
+			}
 
 			dlStatus.progress = 0;
 			dlStatus.total = res.headers['content-length'];
@@ -54,7 +56,7 @@ function download(rawUrl, file, progress, callback) {
 
 		req.on('error', function(e) {
 			console.error(`problem with request: ${e.message}`);
-			mainWindow.webContents.send(`Problem with request: ${e.message}`);
+			mainWindow.webContents.send('error', `Problem with request: ${e.message}`);
 		});
 
 		req.end();
@@ -63,7 +65,7 @@ function download(rawUrl, file, progress, callback) {
 
 module.exports = {
 	download: function(options, progress, callback, mainWindow) {
-		return download(options.url, options.filename, progress, callback, mainWindow);
+		return download(options.url, options.port, options.filename, progress, callback, mainWindow);
 	},
 
 	downloadStatus: function() {
@@ -71,6 +73,10 @@ module.exports = {
 	},
 
 	abort: function() {
-		if (req) req.abort();
+		if (req && dlStatus.isDownloading) req.abort();
+	},
+
+	isDownloading: function() {
+		return dlStatus.isDownloading;
 	}
 };
