@@ -1,3 +1,4 @@
-update.*
-atualizacao.*
+*.exe
+*.dmg
+/node_modules
 /releases
