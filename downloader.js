@@ -36,7 +36,8 @@ function download(rawUrl, port, file, progress, callback, mainWindow) {
 
 			dlStatus.progress = 0;
 			dlStatus.total = res.headers['content-length'];
-			console.log(`File size: ${ (dlStatus.total / 1000000).toFixed(2) }Mb`);
+			console.log('Starting download...');
+			console.log(`File size: ${ dlStatus.total } bytes`);
 
 			res.on('data', function(chunk) {
 				dlStatus.isDownloading = true;
@@ -65,7 +66,7 @@ function download(rawUrl, port, file, progress, callback, mainWindow) {
 
 module.exports = {
 	download: function(options, progress, callback, mainWindow) {
-		return download(options.url, options.port, options.filename, progress, callback, mainWindow);
+		return download(options.url, options.port, options.filename || null, progress, callback, mainWindow);
 	},
 
 	downloadStatus: function() {

@@ -167,10 +167,16 @@
 						})
 				}])
 				.run(['$rootScope', '$location', '$timeout', function($rootScope, $location, $timeout) {
-					$rootScope.version = '0.2';
+					$rootScope.version = '0.3';
 					$rootScope.error = '';
 
 					var _ipcRenderer = require('electron').ipcRenderer;
+
+					_ipcRenderer.on('alert', function(event, arg) {
+						$timeout(function() {
+							alert(arg);
+						});
+					});
 
 					_ipcRenderer.on('error', function(event, arg) {
 						$rootScope.error = arg;

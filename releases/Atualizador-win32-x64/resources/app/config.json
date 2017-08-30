@@ -1,7 +1,0 @@
-{
-	"current-ver": "2.0.0 rc5",
-	"url": "https://172.16.0.1/commercial/Instalador_Commercial.exe",
-	"port": 80,
-	"filename": "update.exe",
-	"manager": "./manager.bat"
-}
