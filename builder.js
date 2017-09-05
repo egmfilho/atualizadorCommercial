@@ -37,7 +37,9 @@ let options = {
 		'atualizador.ico',
 		'atualizador.png',
 		'README.md',
-		'update.*'
+		'update.*',
+		'config.json',
+		'manager.bat'
 	]
 };
 

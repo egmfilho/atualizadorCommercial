@@ -18,7 +18,7 @@ const downloader = require('./downloader.js');
 let mainWindow;
 
 ipcMain.on('begin-download', function(event, arg) {
-	var config = require('./config.json'),
+	var config = require(path.join(path.dirname(app.getPath('exe')), './config.json')),
 		status = downloader.downloadStatus;
 
 	if (config) {
